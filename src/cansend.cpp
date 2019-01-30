@@ -78,35 +78,29 @@ void can_send_frame( int s,int i, char* buffer )//can-send-one-frame...
 }
 
 void canread(int& s) {
-	struct sockaddr_can addr;    
-	struct ifreq ifr;           
-	struct can_frame frame;
+  struct sockaddr_can addr;    
+  struct ifreq ifr;           
+  struct can_frame frame;
   struct can_filter rfilter[1];
 
-	if (( s = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
-		perror("Error while opening socket...\n");
-	}
+  if (( s = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
+    perror("Error while opening socket...\n");
+  }
 	
-	strcpy(ifr.ifr_name, "can1"); 
-	/* ifr.ifr_ifindex = if_nametoindex(ifr.ifr_name);  
-	if (!ifr.ifr_ifindex) {
-		perror("if_nametoindex error...\n");
-	}*/ 
+  strcpy(ifr.ifr_name, "can1"); 
 
   ioctl(s, SIOCGIFINDEX, &ifr);
 
-	memset(&addr, 0, sizeof(addr));
-	addr.can_family = AF_CAN;                        
-	addr.can_ifindex = ifr.ifr_ifindex;              
-
-	bind(s, (struct sockaddr *)&addr, sizeof(addr));
+  memset(&addr, 0, sizeof(addr));
+  addr.can_family = AF_CAN;                        
+  addr.can_ifindex = ifr.ifr_ifindex;              
+  bind(s, (struct sockaddr *)&addr, sizeof(addr));
 
   rfilter[0].can_id = 0x3E9;
   rfilter[0].can_mask = CAN_SFF_MASK;
   setsockopt(s, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, sizeof(rfilter)); //disable filter. 
 
   int nbytes = read(s, &frame, sizeof(frame));
-
   if (nbytes > 0) {
     printf("read successfully!\n");
     printf("id=0X%X  DLC=%d  (unsigned char)frame.data[0]:---%x\n", frame.can_id, frame.can_dlc, (unsigned char)frame.data[1]);
